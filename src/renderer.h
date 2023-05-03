@@ -36,8 +36,8 @@ struct Vertex
 class Renderer
 {
 public:
-  std::vector<uint16_t> indices;
-  std::vector<Vertex> vertices;
+  std::vector<uint16_t> indices = {0, 2, 1};
+  std::vector<Vertex> vertices = {{{0.0f, -0.8f, 0.0f}},{{-0.8f, 0.8f, 0.0f}},{{0.8f, 0.8f, 0.0f}}};
 
   void init();
   void render();

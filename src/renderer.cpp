@@ -423,8 +423,6 @@ void Renderer::createSwapChain()
   createInfo.clipped = VK_TRUE;
   createInfo.oldSwapchain = VK_NULL_HANDLE;
  
-  std::cout << &createInfo << " " << &swapChain << "\n";
-
   if (vkCreateSwapchainKHR(this->logicalDevice, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
   {
     throw std::runtime_error("failed to create swap chain!");
@@ -718,10 +716,7 @@ void Renderer::createBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkDe
   allocInfo.allocationSize = memRequirements.size;
   allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
   
-  std::cout << &bufferMemory << " " << &allocInfo << "\n";
-  
-
-  if (vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &bufferMemory) == VK_ERROR_OUT_OF_DEVICE_MEMORY)
+  if (vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
     throw std::runtime_error("failed to allocate buffer memory!");
 
   vkBindBufferMemory(this->logicalDevice, buffer, bufferMemory, 0);
@@ -765,15 +760,12 @@ void Renderer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize s
 void Renderer::createRenderingBuffers()
 {
   { // Index buffer
-    std::cout << "index\n";
     VkDeviceSize bufferSize = sizeof(this->indices[0]) * this->indices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     createBuffer(stagingBuffer, stagingBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     
-    std::cout << "index 2\n";
-
     void* data;
     vkMapMemory(this->logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
     memcpy(data, this->indices.data(), (size_t) bufferSize);
@@ -788,7 +780,6 @@ void Renderer::createRenderingBuffers()
   }
   
   { // Vertex buffer
-    std::cout << "vertex\n";
     VkDeviceSize bufferSize = sizeof(this->vertices[0]) * this->vertices.size();
 
     VkBuffer stagingBuffer;
