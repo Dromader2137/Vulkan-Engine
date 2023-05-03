@@ -10,6 +10,13 @@
 #include <array>
 #include <string>
 
+struct SwapChainSupportDetails
+{
+  VkSurfaceCapabilitiesKHR capabilities;
+  std::vector<VkSurfaceFormatKHR> formats;
+  std::vector<VkPresentModeKHR> presentModes;
+};
+
 struct QueueFamilyIndices
 {
   std::optional<uint32_t> graphicsFamily; 
@@ -35,7 +42,10 @@ public:
   void init();
   void render();
  
-  Renderer(int windowWidth, int windowHeight);
+  GLFWwindow* getWindow() { return window; }
+  VkDevice getLogicalDevice() { return logicalDevice; }
+
+  Renderer(int windowWidth, int windowHeight) : windowWidth(windowWidth), windowHeight(windowHeight) {}
 
   ~Renderer();
 
@@ -66,6 +76,8 @@ private:
   VkDeviceMemory vertexBufferMemory;
   VkBuffer indexBuffer;
   VkDeviceMemory indexBufferMemory;
+  std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
     
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
   std::vector<char> readFile(const std::string& filename);
@@ -73,7 +85,13 @@ private:
   void initWindow();
   void createInstance();
   void createSurface();
+    bool isDeviceSuitable(VkPhysicalDevice device);
+      bool checkDeviceExtensionSupport(VkPhysicalDevice device);
   void prepareDevices();
+    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
   void createSwapChain();
   void createGraphicsPipeline();
     VkShaderModule createShaderModule(const std::vector<char>& code);
