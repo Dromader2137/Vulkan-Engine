@@ -1,4 +1,3 @@
-#include <glm/fwd.hpp>
 #include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -6,11 +5,25 @@
 #include <glm/glm.hpp>
 
 #include <vector>
+#include <optional>
 #include <cstdint>
+#include <array>
+#include <string>
+
+struct QueueFamilyIndices
+{
+  std::optional<uint32_t> graphicsFamily; 
+  std::optional<uint32_t> presentFamily;
+
+  bool IsComplete();
+};
 
 struct Vertex
 {
   glm::vec3 pos;
+
+  static VkVertexInputBindingDescription getBindingDescription();
+  static std::array<VkVertexInputAttributeDescription, 1> getAttributeDescriptions();
 };
 
 class Renderer
@@ -53,16 +66,19 @@ private:
   VkDeviceMemory vertexBufferMemory;
   VkBuffer indexBuffer;
   VkDeviceMemory indexBufferMemory;
-
+    
+  QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+  std::vector<char> readFile(const std::string& filename);
+  
   void initWindow();
   void createInstance();
   void createSurface();
   void prepareDevices();
   void createSwapChain();
   void createGraphicsPipeline();
+    VkShaderModule createShaderModule(const std::vector<char>& code);
   void createFramebuffers();
   void createCommandPool();
-    
   void createRenderingBuffers();
     void createBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
