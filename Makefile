@@ -1,8 +1,9 @@
 CFLAGS = -std=c++17 -O2
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
+FILES = src/renderer.cpp src/gameObject.cpp src/main.cpp
 
-VulkanEngine: src/main.cpp src/renderer.cpp src/renderer.h
-	g++ $(CFLAGS) -o VulkanEngine src/main.cpp src/renderer.cpp src/renderer.h $(LDFLAGS)
+VulkanEngine: $(FILES)
+	g++ $(CFLAGS) -o VulkanEngine $(FILES) $(LDFLAGS)
 
 .PHONY: test clean
 

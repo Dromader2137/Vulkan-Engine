@@ -4,22 +4,21 @@
 class Component
 {
 public:
-  void OnStart() { }
-  void OnCreate() { }
-  void OnUpdate() { }
-  void OnDestroy() { }
+  virtual void OnStart() { }
+  virtual void OnCreate() { }
+  virtual void OnUpdate() { }
+  virtual void OnDestroy() { }
 };
 
 class GameObject
 {
 public:
+  std::vector<Component*> components;
+  
   void OnStart();
   void OnUpdate();
 
   GameObject();
   ~GameObject();
-
-private:
-  std::vector<std::unique_ptr<Component>> components;
 };
 
