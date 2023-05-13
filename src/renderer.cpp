@@ -1,39 +1,14 @@
 #include "renderer.h"
 
-#include <cstdint>
 #include <cstdio>
 #include <stdexcept>
 #include <cstring>
-#include <vulkan/vulkan_core.h>
 #include <fstream>
 #include <set>
 #include <algorithm>
 #include <iostream>
 
 // OTHER
-
-VkVertexInputBindingDescription Vertex::getBindingDescription()
-{
-  VkVertexInputBindingDescription bindingDescription{};
-    
-  bindingDescription.binding = 0;
-  bindingDescription.stride = sizeof(Vertex);
-  bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-      
-  return bindingDescription;
-}
-
-std::array<VkVertexInputAttributeDescription, 1> Vertex::getAttributeDescriptions()
-{
-  std::array<VkVertexInputAttributeDescription, 1> attributeDescriptions{};
-    
-  attributeDescriptions[0].binding = 0;
-  attributeDescriptions[0].location = 0;
-  attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-  attributeDescriptions[0].offset = offsetof(Vertex, pos); 
-
-  return attributeDescriptions;
-}
 
 bool QueueFamilyIndices::IsComplete()
 {
@@ -422,11 +397,11 @@ void Renderer::createSwapChain()
   createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
   createInfo.oldSwapchain = VK_NULL_HANDLE;
- 
+  
+  std::cout << &createInfo << " " << &this->logicalDevice << "\n";
+
   if (vkCreateSwapchainKHR(this->logicalDevice, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
-  {
     throw std::runtime_error("failed to create swap chain!");
-  }
 
   vkGetSwapchainImagesKHR(this->logicalDevice, swapChain, &imageCount, nullptr);
   swapChainImages.resize(imageCount);
@@ -760,7 +735,7 @@ void Renderer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize s
 void Renderer::createRenderingBuffers()
 {
   { // Index buffer
-    VkDeviceSize bufferSize = sizeof(this->indices[0]) * this->indices.size();
+    VkDeviceSize bufferSize = sizeof(RendererInterface::indices[0]) * RendererInterface::indices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -768,7 +743,7 @@ void Renderer::createRenderingBuffers()
     
     void* data;
     vkMapMemory(this->logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, this->indices.data(), (size_t) bufferSize);
+    memcpy(data, RendererInterface::indices.data(), (size_t) bufferSize);
     vkUnmapMemory(this->logicalDevice, stagingBufferMemory);
 
     createBuffer(this->indexBuffer, this->indexBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -780,7 +755,7 @@ void Renderer::createRenderingBuffers()
   }
   
   { // Vertex buffer
-    VkDeviceSize bufferSize = sizeof(this->vertices[0]) * this->vertices.size();
+    VkDeviceSize bufferSize = sizeof(RendererInterface::vertices[0]) * RendererInterface::vertices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -788,7 +763,7 @@ void Renderer::createRenderingBuffers()
 
     void* data;
     vkMapMemory(this->logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, this->vertices.data(), (size_t) bufferSize);
+    memcpy(data, RendererInterface::vertices.data(), (size_t) bufferSize);
     vkUnmapMemory(this->logicalDevice, stagingBufferMemory);
 
     createBuffer(this->vertexBuffer, this->vertexBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -853,7 +828,7 @@ void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
   vkCmdBindIndexBuffer(commandBuffer, this->indexBuffer, 0, VK_INDEX_TYPE_UINT16);
     
-  vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(this->indices.size()), 1, 0, 0, 0);
+  vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(RendererInterface::indices.size()), 1, 0, 0, 0);
   vkCmdEndRenderPass(commandBuffer);
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
     throw std::runtime_error("failed to record command buffer!");

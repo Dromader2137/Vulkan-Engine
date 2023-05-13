@@ -1,13 +1,9 @@
-#include <vulkan/vulkan_core.h>
+#include "rendererInterface.h"
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include <glm/glm.hpp>
-
-#include <vector>
 #include <optional>
-#include <cstdint>
-#include <array>
 #include <string>
 
 struct SwapChainSupportDetails
@@ -25,20 +21,9 @@ struct QueueFamilyIndices
   bool IsComplete();
 };
 
-struct Vertex
-{
-  glm::vec3 pos;
-
-  static VkVertexInputBindingDescription getBindingDescription();
-  static std::array<VkVertexInputAttributeDescription, 1> getAttributeDescriptions();
-};
-
 class Renderer
 {
 public:
-  std::vector<uint16_t> indices = {0, 2, 1};
-  std::vector<Vertex> vertices = {{{0.0f, -0.8f, 0.0f}},{{-0.8f, 0.8f, 0.0f}},{{0.8f, 0.8f, 0.0f}}};
-
   void init();
   void render();
  
