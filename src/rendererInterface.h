@@ -16,6 +16,6 @@ struct Vertex
 class RendererInterface
 {
 public:
-  static std::vector<Vertex> vertices;
-  static std::vector<uint16_t> indices;
+  std::vector<Vertex> vertices;
+  std::vector<uint16_t> indices;
 };

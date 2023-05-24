@@ -11,7 +11,19 @@
 
 int main()
 {
-  Renderer renderer = Renderer(1600, 900);
+  RendererInterface rendererInterface;
+  rendererInterface.vertices =
+  {
+    {{0.0f, -0.8f, 0.5f}},
+    {{-0.8f, 0.8f, 0.5f}},
+    {{0.8f, 0.8f, 0.5f}}
+  };
+  rendererInterface.indices =
+  {
+    0, 2, 1
+  };
+
+  Renderer renderer = Renderer(1600, 900, &rendererInterface);
   renderer.init();
   
   std::vector<GameObject*> gameObjects; 

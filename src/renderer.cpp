@@ -10,6 +10,16 @@
 
 // OTHER
 
+static std::vector<const char*> validationLayers = {
+    "VK_LAYER_KHRONOS_validation"
+};
+
+#ifdef NDEBUG
+    static bool enableValidationLayers = false;
+#else
+    static bool enableValidationLayers = true;
+#endif
+
 bool QueueFamilyIndices::IsComplete()
 {
   return graphicsFamily.has_value() and presentFamily.has_value();
@@ -102,6 +112,31 @@ Renderer::~Renderer()
 
 // PRIVATE
 
+bool Renderer::checkValidationLayerSupport()
+{
+  uint32_t layerCount;
+  vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+  std::vector<VkLayerProperties> availableLayers(layerCount);
+  vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+  for (const char* layerName : validationLayers) {
+  bool layerFound = false;
+
+  for (const auto& layerProperties : availableLayers) {
+      if (strcmp(layerName, layerProperties.layerName) == 0) {
+          layerFound = true;
+          break;
+      }
+  }
+
+  if (!layerFound) 
+    return false;
+}
+
+return true;
+}
+
 QueueFamilyIndices Renderer::findQueueFamilies(VkPhysicalDevice device)
 {
   QueueFamilyIndices indices;
@@ -145,16 +180,19 @@ std::vector<char> Renderer::readFile(const std::string& filename)
 
 void Renderer::initWindow()
 {
-  glfwInit();
+  if(!glfwInit())
+    throw std::runtime_error("glfw fucked up!");
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
   window = glfwCreateWindow(windowWidth, windowHeight, "Vulkan", nullptr, nullptr);
 }
 
 void Renderer::createInstance()
 {
+  if (enableValidationLayers && !checkValidationLayerSupport())
+    throw std::runtime_error("validation layers requested, but not available!");
+  
   VkApplicationInfo appInfo{};
   appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
   appInfo.pApplicationName = "Vulkan Engine";
@@ -166,8 +204,17 @@ void Renderer::createInstance()
   VkInstanceCreateInfo createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   createInfo.pApplicationInfo = &appInfo;
-  createInfo.enabledLayerCount = 0;
-
+  
+  if (enableValidationLayers) 
+  {
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
+  } 
+  else 
+  {
+    createInfo.enabledLayerCount = 0;
+  }
+  
   uint32_t glfwExtensionCount = 0;
   const char** glfwExtensions;
 
@@ -398,8 +445,6 @@ void Renderer::createSwapChain()
   createInfo.clipped = VK_TRUE;
   createInfo.oldSwapchain = VK_NULL_HANDLE;
   
-  std::cout << &createInfo << " " << &this->logicalDevice << "\n";
-
   if (vkCreateSwapchainKHR(this->logicalDevice, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
     throw std::runtime_error("failed to create swap chain!");
 
@@ -735,7 +780,7 @@ void Renderer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize s
 void Renderer::createRenderingBuffers()
 {
   { // Index buffer
-    VkDeviceSize bufferSize = sizeof(RendererInterface::indices[0]) * RendererInterface::indices.size();
+    VkDeviceSize bufferSize = sizeof(rendererInterface->indices[0]) * rendererInterface->indices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -743,7 +788,7 @@ void Renderer::createRenderingBuffers()
     
     void* data;
     vkMapMemory(this->logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, RendererInterface::indices.data(), (size_t) bufferSize);
+    memcpy(data, rendererInterface->indices.data(), (size_t) bufferSize);
     vkUnmapMemory(this->logicalDevice, stagingBufferMemory);
 
     createBuffer(this->indexBuffer, this->indexBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -755,7 +800,7 @@ void Renderer::createRenderingBuffers()
   }
   
   { // Vertex buffer
-    VkDeviceSize bufferSize = sizeof(RendererInterface::vertices[0]) * RendererInterface::vertices.size();
+    VkDeviceSize bufferSize = sizeof(rendererInterface->vertices[0]) * rendererInterface->vertices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -763,7 +808,7 @@ void Renderer::createRenderingBuffers()
 
     void* data;
     vkMapMemory(this->logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, RendererInterface::vertices.data(), (size_t) bufferSize);
+    memcpy(data, rendererInterface->vertices.data(), (size_t) bufferSize);
     vkUnmapMemory(this->logicalDevice, stagingBufferMemory);
 
     createBuffer(this->vertexBuffer, this->vertexBufferMemory, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -828,7 +873,7 @@ void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
   vkCmdBindIndexBuffer(commandBuffer, this->indexBuffer, 0, VK_INDEX_TYPE_UINT16);
     
-  vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(RendererInterface::indices.size()), 1, 0, 0, 0);
+  vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(rendererInterface->indices.size()), 1, 0, 0, 0);
   vkCmdEndRenderPass(commandBuffer);
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
     throw std::runtime_error("failed to record command buffer!");

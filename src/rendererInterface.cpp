@@ -27,17 +27,3 @@ std::array<VkVertexInputAttributeDescription, 1> Vertex::getAttributeDescription
 
   return attributeDescriptions;
 }
-
-// INTERFACE
-
-std::vector<Vertex> RendererInterface::vertices = 
-{
-  {{0.0f, -0.5f, 0.0f}},
-  {{-0.5f, 0.5f, 0.0f}},
-  {{0.5f, 0.5f, 0.0f}}
-};
-
-std::vector<uint16_t> RendererInterface::indices =
-{
-  0, 1, 2
-};

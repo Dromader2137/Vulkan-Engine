@@ -1,4 +1,5 @@
 #include "rendererInterface.h"
+#include <vulkan/vulkan_core.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -30,11 +31,12 @@ public:
   GLFWwindow* getWindow() { return window; }
   VkDevice getLogicalDevice() { return logicalDevice; }
 
-  Renderer(int windowWidth, int windowHeight) : windowWidth(windowWidth), windowHeight(windowHeight) {}
+  Renderer(int windowWidth, int windowHeight, RendererInterface* rendererInterface) : windowWidth(windowWidth), windowHeight(windowHeight), rendererInterface(rendererInterface) {}
 
   ~Renderer();
 
 private:
+  RendererInterface* rendererInterface;
   int windowWidth = 1600, windowHeight = 900;
   GLFWwindow* window;
   VkSurfaceKHR renderSurface;
@@ -61,11 +63,11 @@ private:
   VkDeviceMemory vertexBufferMemory;
   VkBuffer indexBuffer;
   VkDeviceMemory indexBufferMemory;
-  std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-
+  const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
   std::vector<char> readFile(const std::string& filename);
+  bool checkValidationLayerSupport();
   
   void initWindow();
   void createInstance();
