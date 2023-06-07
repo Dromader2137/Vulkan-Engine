@@ -1,12 +1,18 @@
+#define GLM_FORCE_RADIANS
 #include "renderer.h"
+#include "glm/gtc/matrix_transform.hpp"
 
+#include <chrono>
 #include <cstdio>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include <stdexcept>
 #include <cstring>
 #include <fstream>
 #include <set>
 #include <algorithm>
 #include <iostream>
+#include <vulkan/vulkan_core.h>
 
 // OTHER
 
@@ -30,28 +36,60 @@ bool QueueFamilyIndices::IsComplete()
 void Renderer::init()
 {
   initWindow();
+  //std::cout << "1\n";
   createInstance();
+  //std::cout << "2\n";
   createSurface();
+  //std::cout << "3\n";
   prepareDevices();
+  //std::cout << "4\n";
   createSwapChain();
+  //std::cout << "5\n";
+  createDescriptorSetLayout();
+  //std::cout << "6\n";
   createGraphicsPipeline();
+  //std::cout << "7\n";
   createFramebuffers();
+  ///std::cout << "8\n";
   createCommandPool();
+  //std::cout << "9\n";
   createRenderingBuffers();
+  //std::cout << "10\n";
+  createUniformBuffers();
+  //std::cout << "11\n";
+  createDescriptorPool();
+  //std::cout << "12\n";
+  createDescriptorSets();
+  //std::cout << "13\n";
   createCommandBuffer();
+  //std::cout << "14\n";
   createSyncObjects();
+  //std::cout << "15\n";
 }
 
 void Renderer::render()
 {
+  //std::cout << "BEFORE1\n";
+
   vkWaitForFences(logicalDevice, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
   vkResetFences(logicalDevice, 1, &inFlightFence);
-
+  
+  //std::cout << "BEFORE1.5\n";
+  
   uint32_t imageIndex;
+  //std::cout << "BEFORE1.6\n";
   vkAcquireNextImageKHR(logicalDevice, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+  //std::cout << "BEFORE1.7\n";
   vkResetCommandBuffer(commandBuffer, 0);
+  //std::cout << "BEFORE1.8\n";
   recordCommandBuffer(commandBuffer, imageIndex);
+  
+  //std::cout << "BEFORE2\n";
 
+  updateUniformBuffer();
+
+  ///std::cout << "AFTER\n";
+  
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -184,6 +222,7 @@ void Renderer::initWindow()
     throw std::runtime_error("glfw fucked up!");
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
   window = glfwCreateWindow(windowWidth, windowHeight, "Vulkan", nullptr, nullptr);
 }
@@ -493,6 +532,23 @@ VkShaderModule Renderer::createShaderModule(const std::vector<char>& code)
   return shaderModule;
 }
 
+void Renderer::createDescriptorSetLayout()
+{
+  VkDescriptorSetLayoutBinding uboLayoutBinding{};
+  uboLayoutBinding.binding = 0;
+  uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  uboLayoutBinding.descriptorCount = 1;
+  uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  
+  VkDescriptorSetLayoutCreateInfo layoutInfo{};
+  layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+  layoutInfo.bindingCount = 1;
+  layoutInfo.pBindings = &uboLayoutBinding;
+
+  if (vkCreateDescriptorSetLayout(logicalDevice, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+    throw std::runtime_error("failed to create descriptor set layout!");
+}
+
 void Renderer::createGraphicsPipeline()
 {
   VkAttachmentDescription colorAttachment{};
@@ -606,7 +662,7 @@ void Renderer::createGraphicsPipeline()
   rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
   rasterizer.lineWidth = 1.0f;
   rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-  rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+  rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
   rasterizer.depthBiasEnable = VK_FALSE;
 
   VkPipelineMultisampleStateCreateInfo multisampling{};
@@ -637,8 +693,8 @@ void Renderer::createGraphicsPipeline()
 
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = 0;
-  pipelineLayoutInfo.pSetLayouts = nullptr;
+  pipelineLayoutInfo.setLayoutCount = 1;
+  pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
   pipelineLayoutInfo.pushConstantRangeCount = 0;
   pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
@@ -820,6 +876,66 @@ void Renderer::createRenderingBuffers()
   }
 }
 
+void Renderer::createUniformBuffers()
+{
+  VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+  createBuffer(uniformBuffers, uniformBuffersMemory, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+  vkMapMemory(logicalDevice, uniformBuffersMemory, 0, bufferSize, 0, &uniformBuffersMapped);
+}
+
+void Renderer::updateUniformBuffer()
+{
+  //std::cout << "X1\n";
+
+  static auto startTime = std::chrono::high_resolution_clock::now();
+
+  //std::cout << "X2\n";
+  auto currentTime = std::chrono::high_resolution_clock::now();
+  float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+  
+  //std::cout << "X3\n";
+  UniformBufferObject ubo{};
+  ubo.from[0] = 0;
+  ubo.model[0] = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+  ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+  ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f); ubo.proj[1][1] *= -1;
+
+  //std::cout << "X4\n";
+  memcpy(uniformBuffersMapped, &ubo, sizeof(ubo));
+  //std::cout << "X5\n";
+}
+
+void Renderer::createDescriptorPool()
+{
+  VkDescriptorPoolSize poolSize{};
+  poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  poolSize.descriptorCount = 1;
+
+  VkDescriptorPoolCreateInfo poolInfo{};
+  poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+  poolInfo.poolSizeCount = 1;
+  poolInfo.pPoolSizes = &poolSize;
+  poolInfo.maxSets = 1;
+
+  if (vkCreateDescriptorPool(logicalDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+    throw std::runtime_error("failed to create descriptor pool!");
+}
+
+void Renderer::createDescriptorSets()
+{
+  std::vector<VkDescriptorSetLayout> layouts(1, descriptorSetLayout);
+  VkDescriptorSetAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocInfo.descriptorPool = descriptorPool;
+  allocInfo.descriptorSetCount = static_cast<uint32_t>(1);
+  allocInfo.pSetLayouts = layouts.data();
+
+  if(vkAllocateDescriptorSets(logicalDevice, &allocInfo, &descriptorSet[0]) != VK_SUCCESS)
+    throw std::runtime_error("descriptor sets fucked up");
+}
+
 void Renderer::createCommandBuffer() 
 {
   VkCommandBufferAllocateInfo allocInfo{};
@@ -830,6 +946,22 @@ void Renderer::createCommandBuffer()
 
   if (vkAllocateCommandBuffers(this->logicalDevice, &allocInfo, &this->commandBuffer) != VK_SUCCESS) 
     throw std::runtime_error("failed to allocate command buffers!");
+
+  VkDescriptorBufferInfo bufferInfo{};
+  bufferInfo.buffer = uniformBuffers;
+  bufferInfo.offset = 0;
+  bufferInfo.range = sizeof(UniformBufferObject);
+
+  VkWriteDescriptorSet descriptorWrite{};
+  descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  descriptorWrite.dstSet = descriptorSet[0];
+  descriptorWrite.dstBinding = 0;
+  descriptorWrite.dstArrayElement = 0;
+  descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  descriptorWrite.descriptorCount = 1;
+  descriptorWrite.pBufferInfo = &bufferInfo;
+  
+  vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);  
 }
 
 void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) 
@@ -872,7 +1004,10 @@ void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
   VkDeviceSize offsets[] = {0};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
   vkCmdBindIndexBuffer(commandBuffer, this->indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-    
+  //std::cout << "XX1\n";
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet[0], 0, nullptr);
+  //std::cout << "XX2\n";
+
   vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(rendererInterface->indices.size()), 1, 0, 0, 0);
   vkCmdEndRenderPass(commandBuffer);
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)

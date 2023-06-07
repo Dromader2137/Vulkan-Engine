@@ -7,20 +7,20 @@
 #include "renderer.h"
 #include "gameObject.h"
 
-
-
 int main()
 {
   RendererInterface rendererInterface;
   rendererInterface.vertices =
   {
-    {{0.0f, -0.8f, 0.5f}},
-    {{-0.8f, 0.8f, 0.5f}},
-    {{0.8f, 0.8f, 0.5f}}
+    {{1.0f, 1.0f, -0.5f}, {1.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{1.0f, -1.0f, -0.5f}, {1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{-1.0f, -1.0f, -0.5f}, {-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{-1.0f, 1.0f, -0.5f}, {-1.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{0.0f, 0.0f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
   };
   rendererInterface.indices =
   {
-    0, 2, 1
+    0, 1, 2, 3, 0, 2, 1, 0, 4, 2, 1, 4, 3, 2, 4, 0, 3, 4
   };
 
   Renderer renderer = Renderer(1600, 900, &rendererInterface);

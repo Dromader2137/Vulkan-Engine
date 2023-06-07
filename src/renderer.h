@@ -3,6 +3,7 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 #include <optional>
 #include <string>
@@ -51,6 +52,7 @@ private:
   VkExtent2D swapChainExtent;
   std::vector<VkImageView> swapChainImageViews;
   std::vector<VkFramebuffer> swapChainFramebuffers;
+  VkDescriptorSetLayout descriptorSetLayout;
   VkPipeline graphicsPipeline;
   VkPipelineLayout pipelineLayout;
   VkRenderPass renderPass;
@@ -63,6 +65,11 @@ private:
   VkDeviceMemory vertexBufferMemory;
   VkBuffer indexBuffer;
   VkDeviceMemory indexBufferMemory;
+  VkBuffer uniformBuffers;
+  VkDeviceMemory uniformBuffersMemory;
+  void* uniformBuffersMapped;
+  VkDescriptorPool descriptorPool;
+  VkDescriptorSet descriptorSet[1];
   const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
@@ -80,6 +87,7 @@ private:
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
   void createSwapChain();
+  void createDescriptorSetLayout();
   void createGraphicsPipeline();
     VkShaderModule createShaderModule(const std::vector<char>& code);
   void createFramebuffers();
@@ -88,6 +96,10 @@ private:
     void createBuffer(VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+  void createUniformBuffers();
+  void createDescriptorPool();
+  void createDescriptorSets();
+  void updateUniformBuffer();
   void createCommandBuffer();
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
   void createSyncObjects();
