@@ -1,3 +1,5 @@
+#pragma once
+
 #include "rendererInterface.h"
 #include <vulkan/vulkan_core.h>
 
@@ -70,11 +72,16 @@ private:
   void* uniformBuffersMapped;
   VkDescriptorPool descriptorPool;
   VkDescriptorSet descriptorSet[1];
-  const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  VkImage depthImage;
+  VkDeviceMemory depthImageMemory;
+  VkImageView depthImageView;
+  const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_EXTENSION_NAME};
     
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
   std::vector<char> readFile(const std::string& filename);
   bool checkValidationLayerSupport();
+  VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+  void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
   
   void initWindow();
   void createInstance();
@@ -103,4 +110,8 @@ private:
   void createCommandBuffer();
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
   void createSyncObjects();
+  void createDepthResources();
+    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+    VkFormat findDepthFormat();
+    bool hasStencilComponent(VkFormat format);
 };
