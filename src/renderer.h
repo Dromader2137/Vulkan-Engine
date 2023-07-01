@@ -114,4 +114,7 @@ private:
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
     VkFormat findDepthFormat();
     bool hasStencilComponent(VkFormat format);
+  
+  void cleanupSwapChain();
+  void recreateSwapChain();
 };
