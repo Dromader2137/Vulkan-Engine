@@ -75,13 +75,37 @@ void Renderer::render()
   //std::cout << "BEFORE1\n";
 
   vkWaitForFences(logicalDevice, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+
+  uint32_t imageIndex;
+  VkResult result = vkAcquireNextImageKHR(logicalDevice, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+  if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+    recreateSwapChain();
+    return;
+  } 
+  else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+    std::string a = ""; a += (char)(result == VK_ERROR_SURFACE_LOST_KHR);
+    throw std::runtime_error(a);
+  }
+
   vkResetFences(logicalDevice, 1, &inFlightFence);
   
   //std::cout << "BEFORE1.5\n";
   
-  uint32_t imageIndex;
   //std::cout << "BEFORE1.6\n";
-  vkAcquireNextImageKHR(logicalDevice, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+  result = vkAcquireNextImageKHR(logicalDevice, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+  if(result == VK_ERROR_OUT_OF_DATE_KHR)
+  {
+    recreateSwapChain();
+    return;
+  }
+  else if(result != VK_SUCCESS and result != VK_SUBOPTIMAL_KHR and result != VK_NOT_READY)
+  {
+    std::string a = ""; a += (char)((result == VK_NOT_READY) + 48);
+    throw std::runtime_error(a);
+  }
+
   //std::cout << "BEFORE1.7\n";
   vkResetCommandBuffer(commandBuffer, 0);
   //std::cout << "BEFORE1.8\n";
@@ -120,7 +144,16 @@ void Renderer::render()
   presentInfo.swapchainCount = 1;
   presentInfo.pSwapchains = swapChains;
   presentInfo.pImageIndices = &imageIndex;
-  vkQueuePresentKHR(presentCommandQueue, &presentInfo);
+  
+  result = vkQueuePresentKHR(presentCommandQueue, &presentInfo);
+
+  if(result == VK_ERROR_OUT_OF_DATE_KHR or result == VK_SUBOPTIMAL_KHR)
+  {
+    recreateSwapChain();
+    return;
+  }
+  else if (result != VK_SUCCESS)
+    throw std::runtime_error("failed to present swap chain image!");
 }
 
 Renderer::~Renderer()
@@ -280,7 +313,7 @@ void Renderer::initWindow()
     throw std::runtime_error("glfw fucked up!");
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
   window = glfwCreateWindow(windowWidth, windowHeight, "Vulkan", nullptr, nullptr);
 }
@@ -971,24 +1004,9 @@ void Renderer::createUniformBuffers()
 
 void Renderer::updateUniformBuffer()
 {
-  //std::cout << "X1\n";
+  rendererInterface->ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f); rendererInterface->ubo.proj[1][1] *= -1;
 
-  static auto startTime = std::chrono::high_resolution_clock::now();
-
-  //std::cout << "X2\n";
-  auto currentTime = std::chrono::high_resolution_clock::now();
-  float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-  
-  //std::cout << "X3\n";
-  UniformBufferObject ubo{};
-  ubo.model[0] = glm::mat4(1.0f);
-  ubo.model[1] = glm::translate(glm::mat4(1.0f), glm::vec3(sin(time), 0.0f, 0.0f));
-  ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-  ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f); ubo.proj[1][1] *= -1;
-
-  //std::cout << "X4\n";
   memcpy(uniformBuffersMapped, &rendererInterface->ubo, sizeof(rendererInterface->ubo));
-  //std::cout << "X5\n";
 }
 
 void Renderer::createDescriptorPool()
@@ -1154,3 +1172,23 @@ bool Renderer::hasStencilComponent(VkFormat format) {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
+void Renderer::cleanupSwapChain()
+{
+  for (size_t i = 0; i < swapChainFramebuffers.size(); i++)
+    vkDestroyFramebuffer(logicalDevice, swapChainFramebuffers[i], nullptr);
+
+  for (size_t i = 0; i < swapChainImageViews.size(); i++)
+    vkDestroyImageView(logicalDevice, swapChainImageViews[i], nullptr);
+
+  vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
+}
+
+void Renderer::recreateSwapChain()
+{
+  vkDeviceWaitIdle(logicalDevice);
+
+  cleanupSwapChain();
+
+  createSwapChain();
+  createFramebuffers();   
+}
