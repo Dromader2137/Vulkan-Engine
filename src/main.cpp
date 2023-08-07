@@ -7,6 +7,7 @@
 #include "renderer.h"
 #include "gameObject.h"
 #include "components.h"
+#include "inputInterface.h"
 
 int main()
 {
@@ -88,6 +89,9 @@ int main()
 
   Renderer renderer = Renderer(1600, 900, &rendererInterface);
   renderer.init();
+
+  InputInterface inputInterface = InputInterface();
+  inputInterface.window = renderer.getWindow();
   
   GameObject::gameObjects.push_back(gameObject);  
   GameObject::gameObjects.push_back(gameObject1);  
@@ -102,6 +106,7 @@ int main()
     for(int i = 0; i < GameObject::gameObjects.size(); ++i)
     {
       GameObject::gameObjects[i]->OnUpdate();
+      std::cout << inputInterface.IsKeyPressed(GLFW_KEY_W);
       rendererInterface.ubo.model[GameObject::gameObjects[i]->id] = GameObject::gameObjects[i]->GetModelMatrix();
     }
     renderer.render(); 
