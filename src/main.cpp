@@ -1,6 +1,3 @@
-#include <memory>
-#include <iostream>
-
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -9,76 +6,37 @@
 #include "components.h"
 #include "inputInterface.h"
 
-class Player : public Component
-{
-public:
-  void OnUpdate(GameState& gameState) override
-  {
-    if(gameState.inputInterface->IsKeyPressed(GLFW_KEY_W))
-    {
-      gameObject->position.z += 0.002f;
-    }
-    if(gameState.inputInterface->IsKeyPressed(GLFW_KEY_S))
-    {
-      gameObject->position.z -= 0.002f;
-    }
-  }
-};
+
+ /*
+  *
+  *  INCLUDE YOUR HEADERS FROM HERE
+  *
+  */
+  
+ /*
+  *
+  *  INCLUDE YOUR HEADERS TO HERE
+  *
+  */
 
 int main()
 {
+  /*
+   *
+   *  WRITE YOUR CODE FROM HERE
+   *
+   */
+  
+  /*
+   *
+   *  WRITE YOUR CODE TO HERE
+   *
+   */
+  
   RendererInterface rendererInterface;
   rendererInterface.ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
   rendererInterface.ubo.proj = glm::perspective(glm::radians(45.0f), 1600 / 900.0f, 0.1f, 10.0f); 
   rendererInterface.ubo.proj[1][1] *= -1;
-
-  
-  GameObject* gameObject = new GameObject(0);
-  GameObject* gameObject1 = new GameObject(1);
-  Mesh* mesh = new Mesh(&rendererInterface);
-  gameObject->components.push_back(mesh);
-  Mesh* meshh = new Mesh(&rendererInterface);
-  gameObject1->components.push_back(meshh);
-  Player* player = new Player();
-  gameObject1->components.push_back(player);
-  
-  mesh->vertices =
-  {
-    {{1.0f, 1.0f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{1.0f, -1.0f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{-1.0f, -1.0f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{-1.0f, 1.0f, -0.5f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{1.0f, 1.0f, -0.5f}, {1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{1.0f, -1.0f, -0.5f}, {1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{0.0f, 0.0f, 0.5f}, {1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{1.0f, -1.0f, -0.5f}, {0.0f, -1.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{-1.0f, -1.0f, -0.5f}, {0.0f, -1.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{0.0f, 0.0f, 0.5f}, {0.0f, -1.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{-1.0f, -1.0f, -0.5f}, {-1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{-1.0f, 1.0f, -0.5f}, {-1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{0.0f, 0.0f, 0.5f}, {-1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{-1.0f, 1.0f, -0.5f}, {0.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{1.0f, 1.0f, -0.5f}, {0.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-    {{0.0f, 0.0f, 0.5f}, {0.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, 0, 2},
-  };
-  mesh->indices =
-  {
-    0, 1, 2, 3, 0, 2, 4, 6, 5, 7, 9, 8, 10, 12, 11, 13, 15, 14
-  };
-
-  meshh->vertices =
-  {
-    {{1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 1, 3},
-    {{1.0f, -1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 1, 3},
-    {{-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 1, 3},
-    {{-1.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 1, 3},
-  };
-  meshh->indices =
-  {
-    0, 2, 1, 0, 3, 2
-  };
-
-  mesh->UpdateMesh();
   
   Renderer renderer = Renderer(1600, 900, &rendererInterface);
   renderer.init();
@@ -90,13 +48,9 @@ int main()
   gameState.rendererInterface = &rendererInterface;
   gameState.inputInterface = &inputInterface;
   
-  GameObject::gameObjects.push_back(gameObject);  
-  GameObject::gameObjects.push_back(gameObject1);  
-
   for(auto& obj : GameObject::gameObjects)
-  {
     obj->OnStart();
-  }
+
   while(!glfwWindowShouldClose(renderer.getWindow())) 
   {
     glfwPollEvents();

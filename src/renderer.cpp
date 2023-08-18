@@ -927,6 +927,8 @@ void Renderer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize s
 void Renderer::createRenderingBuffers()
 {
   { // Index buffr
+    if(rendererInterface->indices.size() == 0) rendererInterface->indices = {0, 0, 0};
+    
     VkDeviceSize bufferSize = sizeof(rendererInterface->indices[0]) * rendererInterface->indices.size();
 
     VkBuffer stagingBuffer;
@@ -947,6 +949,8 @@ void Renderer::createRenderingBuffers()
   }
   
   { // Vertex buffer
+    if(rendererInterface->vertices.size() == 0) rendererInterface->vertices = {{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, 511, 4096}};
+    
     VkDeviceSize bufferSize = sizeof(rendererInterface->vertices[0]) * rendererInterface->vertices.size();
 
     VkBuffer stagingBuffer;
