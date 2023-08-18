@@ -17,14 +17,15 @@ void GameObject::OnStart()
   for(auto& comp : components)
   {
     comp->OnStart();
+    comp->gameObject = this;
   }
 }
 
-void GameObject::OnUpdate()
+void GameObject::OnUpdate(GameState& gameState)
 {
   for(auto& comp : components)
   {
-    comp->OnUpdate();
+    comp->OnUpdate(gameState);
   }
 }
 

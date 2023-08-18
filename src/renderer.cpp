@@ -38,42 +38,25 @@ bool QueueFamilyIndices::IsComplete()
 void Renderer::init()
 {
   initWindow();
-  //std::cout << "1\n";
   createInstance();
-  //std::cout << "2\n";
   createSurface();
-  //std::cout << "3\n";
   prepareDevices();
-  //std::cout << "4\n";
   createSwapChain();
-  //std::cout << "5\n";
   createDescriptorSetLayout();
-  //std::cout << "6\n";
   createGraphicsPipeline();
-  //std::cout << "7\n";
-  ///std::cout << "8\n";
   createCommandPool();
   createDepthResources();
   createFramebuffers();
-  //std::cout << "9\n";
   createRenderingBuffers();
-  //std::cout << "10\n";
   createUniformBuffers();
-  //std::cout << "11\n";
   createDescriptorPool();
-  //std::cout << "12\n";
   createDescriptorSets();
-  //std::cout << "13\n";
   createCommandBuffer();
-  //std::cout << "14\n";
   createSyncObjects();
-  //std::cout << "15\n";
 }
 
 void Renderer::render()
 {
-  //std::cout << "BEFORE1\n";
-
   vkWaitForFences(logicalDevice, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
 
   uint32_t imageIndex;
@@ -90,9 +73,6 @@ void Renderer::render()
 
   vkResetFences(logicalDevice, 1, &inFlightFence);
   
-  //std::cout << "BEFORE1.5\n";
-  
-  //std::cout << "BEFORE1.6\n";
   result = vkAcquireNextImageKHR(logicalDevice, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
   if(result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -106,16 +86,10 @@ void Renderer::render()
     throw std::runtime_error(a);
   }
 
-  //std::cout << "BEFORE1.7\n";
   vkResetCommandBuffer(commandBuffer, 0);
-  //std::cout << "BEFORE1.8\n";
   recordCommandBuffer(commandBuffer, imageIndex);
   
-  //std::cout << "BEFORE2\n";
-
   updateUniformBuffer();
-
-  ///std::cout << "AFTER\n";
   
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -952,7 +926,9 @@ void Renderer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize s
 
 void Renderer::createRenderingBuffers()
 {
-  { // Index buffer
+  { // Index buffr
+    if(rendererInterface->indices.size() == 0) rendererInterface->indices = {0, 0, 0};
+    
     VkDeviceSize bufferSize = sizeof(rendererInterface->indices[0]) * rendererInterface->indices.size();
 
     VkBuffer stagingBuffer;
@@ -973,6 +949,8 @@ void Renderer::createRenderingBuffers()
   }
   
   { // Vertex buffer
+    if(rendererInterface->vertices.size() == 0) rendererInterface->vertices = {{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, 511, 4096}};
+    
     VkDeviceSize bufferSize = sizeof(rendererInterface->vertices[0]) * rendererInterface->vertices.size();
 
     VkBuffer stagingBuffer;
@@ -1070,8 +1048,8 @@ void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
 {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  beginInfo.flags = 0; // Optional
-  beginInfo.pInheritanceInfo = nullptr; // Optional
+  beginInfo.flags = 0;
+  beginInfo.pInheritanceInfo = nullptr;
 
   if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
     throw std::runtime_error("failed to begin recording command buffer!");
@@ -1111,10 +1089,7 @@ void Renderer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t image
   VkDeviceSize offsets[] = {0};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
   vkCmdBindIndexBuffer(commandBuffer, this->indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-  //std::cout << "XX1\n";
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet[0], 0, nullptr);
-  //std::cout << "XX2\n";
-
   vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(rendererInterface->indices.size()), 1, 0, 0, 0);
   vkCmdEndRenderPass(commandBuffer);
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
