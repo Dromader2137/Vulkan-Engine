@@ -1,3 +1,4 @@
+#include <cstdint>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -5,7 +6,22 @@
 #include "gameObject.h"
 #include "components.h"
 #include "inputInterface.h"
+ 
+ /*
+  *
+  *  CHANGABLE START CONSTANTS
+  *
+  */
+  
+const int WIDTH = 1600;
+const int HEIGHT = 900;
 
+ /*
+  *
+  *  CHANGABLE START CONSTANTS
+  *
+  */
+ 
 
  /*
   *
@@ -23,22 +39,21 @@ int main()
 {
   /*
    *
-   *  WRITE YOUR CODE FROM HERE
+   *  WRITE YOUR INITIALIZATION CODE FROM HERE
    *
    */
   
   /*
    *
-   *  WRITE YOUR CODE TO HERE
+   *  WRITE YOUR INITIALIZATION CODE TO HERE
    *
    */
   
   RendererInterface rendererInterface;
   rendererInterface.ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-  rendererInterface.ubo.proj = glm::perspective(glm::radians(45.0f), 1600 / 900.0f, 0.1f, 10.0f); 
-  rendererInterface.ubo.proj[1][1] *= -1;
+  rendererInterface.ubo.proj = -glm::perspective(glm::radians(45.0f), WIDTH / (float)HEIGHT, 0.1f, 10.0f); 
   
-  Renderer renderer = Renderer(1600, 900, &rendererInterface);
+  Renderer renderer = Renderer(WIDTH, HEIGHT, &rendererInterface);
   renderer.init();
 
   InputInterface inputInterface = InputInterface();

@@ -4,6 +4,7 @@ FILES = src/inputInterface.cpp src/rendererInterface.cpp src/components.cpp src/
 
 VulkanEngine: $(FILES)
 	g++ $(CFLAGS) -o VulkanEngine $(FILES) $(LDFLAGS)
+	./compile.sh
 
 .PHONY: test clean
 
