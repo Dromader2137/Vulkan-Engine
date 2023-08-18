@@ -6,13 +6,19 @@
 #include <memory>
 #include <vector>
 
+#include "gameState.h"
+
+class GameObject;
+
 class Component
 {
 public:
   virtual void OnStart() { }
   virtual void OnCreate() { }
-  virtual void OnUpdate() { }
+  virtual void OnUpdate(GameState& gameState) { }
   virtual void OnDestroy() { }
+
+  GameObject* gameObject;
 };
 
 class GameObject
@@ -30,7 +36,7 @@ public:
   glm::mat4 GetModelMatrix();
 
   void OnStart();
-  void OnUpdate();
+  void OnUpdate(GameState& gameState);
 
   GameObject(uint16_t id);
   ~GameObject();

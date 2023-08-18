@@ -9,6 +9,18 @@
 #include "components.h"
 #include "inputInterface.h"
 
+class Player : public Component
+{
+public:
+  void OnUpdate(GameState& gameState) override
+  {
+    if(gameState.inputInterface->IsKeyPressed(GLFW_KEY_W))
+    {
+      gameObject->position.z += 0.002f;
+    }
+  }
+};
+
 int main()
 {
   RendererInterface rendererInterface;
@@ -21,6 +33,10 @@ int main()
 
   InputInterface inputInterface = InputInterface();
   inputInterface.window = renderer.getWindow();
+
+  GameState gameState;
+  gameState.rendererInterface = &rendererInterface;
+  gameState.inputInterface = &inputInterface;
   
   GameObject* gameObject = new GameObject(0);
   GameObject* gameObject1 = new GameObject(1);
@@ -28,6 +44,8 @@ int main()
   gameObject->components.push_back(mesh);
   Mesh* meshh = new Mesh(&rendererInterface);
   gameObject1->components.push_back(meshh);
+  Player* player = new Player();
+  gameObject1->components.push_back(player);
   
   mesh->vertices =
   {
@@ -79,7 +97,7 @@ int main()
     glfwPollEvents();
     for(int i = 0; i < GameObject::gameObjects.size(); ++i)
     {
-      GameObject::gameObjects[i]->OnUpdate();
+      GameObject::gameObjects[i]->OnUpdate(gameState);
       rendererInterface.ubo.model[GameObject::gameObjects[i]->id] = GameObject::gameObjects[i]->GetModelMatrix();
     }
     renderer.render(); 
