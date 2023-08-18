@@ -18,6 +18,10 @@ public:
     {
       gameObject->position.z += 0.002f;
     }
+    if(gameState.inputInterface->IsKeyPressed(GLFW_KEY_S))
+    {
+      gameObject->position.z -= 0.002f;
+    }
   }
 };
 
@@ -28,15 +32,6 @@ int main()
   rendererInterface.ubo.proj = glm::perspective(glm::radians(45.0f), 1600 / 900.0f, 0.1f, 10.0f); 
   rendererInterface.ubo.proj[1][1] *= -1;
 
-  Renderer renderer = Renderer(1600, 900, &rendererInterface);
-  renderer.init();
-
-  InputInterface inputInterface = InputInterface();
-  inputInterface.window = renderer.getWindow();
-
-  GameState gameState;
-  gameState.rendererInterface = &rendererInterface;
-  gameState.inputInterface = &inputInterface;
   
   GameObject* gameObject = new GameObject(0);
   GameObject* gameObject1 = new GameObject(1);
@@ -84,6 +79,16 @@ int main()
   };
 
   mesh->UpdateMesh();
+  
+  Renderer renderer = Renderer(1600, 900, &rendererInterface);
+  renderer.init();
+
+  InputInterface inputInterface = InputInterface();
+  inputInterface.window = renderer.getWindow();
+
+  GameState gameState;
+  gameState.rendererInterface = &rendererInterface;
+  gameState.inputInterface = &inputInterface;
   
   GameObject::gameObjects.push_back(gameObject);  
   GameObject::gameObjects.push_back(gameObject1);  
