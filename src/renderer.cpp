@@ -1,4 +1,5 @@
 #include <glm/fwd.hpp>
+#include <iterator>
 #include <math.h>
 #define GLM_FORCE_RADIANS
 #include "renderer.h"
@@ -154,7 +155,7 @@ Renderer::~Renderer()
   vkDestroyDevice(logicalDevice, nullptr);
   vkDestroySurfaceKHR(instance, renderSurface, nullptr);
   vkDestroyInstance(instance, nullptr);
-  glfwDestroyWindow(window);
+  glfwDestroyWindow(rendererInterface->window);
   glfwTerminate();
 }
 
@@ -289,7 +290,7 @@ void Renderer::initWindow()
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-  window = glfwCreateWindow(windowWidth, windowHeight, "Vulkan", nullptr, nullptr);
+  rendererInterface->window = glfwCreateWindow(windowWidth, windowHeight, "Vulkan", nullptr, nullptr);
 }
 
 void Renderer::createInstance()
@@ -336,7 +337,7 @@ void Renderer::createInstance()
 
 void Renderer::createSurface()
 {
-  if(glfwCreateWindowSurface(instance, window, nullptr, &renderSurface) != VK_SUCCESS)
+  if(glfwCreateWindowSurface(instance, rendererInterface->window, nullptr, &renderSurface) != VK_SUCCESS)
     throw std::runtime_error("failed to create window surface!");
 }
 
@@ -491,7 +492,7 @@ VkExtent2D Renderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabiliti
   else
   {
     int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
+    glfwGetFramebufferSize(rendererInterface->window, &width, &height);
 
     VkExtent2D actualExtent = 
     {

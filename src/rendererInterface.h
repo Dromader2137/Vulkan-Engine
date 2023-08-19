@@ -6,6 +6,7 @@
 
 #include "glm/glm.hpp"
 #include "vulkan/vulkan_core.h"
+#include "GLFW/glfw3.h"
 
 #define MAX_OBJ 512
 
@@ -34,4 +35,5 @@ public:
   std::vector<Vertex> vertices;
   std::vector<uint16_t> indices;
   UniformBufferObject ubo;
+  GLFWwindow* window;
 };

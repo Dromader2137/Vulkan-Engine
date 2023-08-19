@@ -57,7 +57,7 @@ int main()
   renderer.init();
 
   InputInterface inputInterface = InputInterface();
-  inputInterface.window = renderer.getWindow();
+  inputInterface.window = rendererInterface.window;
 
   GameState gameState;
   gameState.rendererInterface = &rendererInterface;
@@ -66,7 +66,7 @@ int main()
   for(auto& obj : GameObject::gameObjects)
     obj->OnStart();
 
-  while(!glfwWindowShouldClose(renderer.getWindow())) 
+  while(!glfwWindowShouldClose(rendererInterface.window)) 
   {
     glfwPollEvents();
     for(int i = 0; i < GameObject::gameObjects.size(); ++i)

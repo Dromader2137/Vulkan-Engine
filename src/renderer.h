@@ -31,7 +31,6 @@ public:
   void init();
   void render();
  
-  GLFWwindow* getWindow() { return window; }
   VkDevice getLogicalDevice() { return logicalDevice; }
 
   Renderer(int windowWidth, int windowHeight, RendererInterface* rendererInterface) : windowWidth(windowWidth), windowHeight(windowHeight), rendererInterface(rendererInterface) {}
@@ -41,7 +40,6 @@ public:
 private:
   RendererInterface* rendererInterface;
   int windowWidth = 1600, windowHeight = 900;
-  GLFWwindow* window;
   VkSurfaceKHR renderSurface;
   VkInstance instance;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
