@@ -1,4 +1,5 @@
-#include <cstdint>
+#include <ios>
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -42,7 +43,9 @@ int main()
    *  WRITE YOUR INITIALIZATION CODE FROM HERE
    *
    */
-  
+    
+    
+
   /*
    *
    *  WRITE YOUR INITIALIZATION CODE TO HERE
@@ -57,7 +60,7 @@ int main()
   renderer.init();
 
   InputInterface inputInterface = InputInterface();
-  inputInterface.window = rendererInterface.window;
+  inputInterface.rendererInterface = &rendererInterface;
 
   GameState gameState;
   gameState.rendererInterface = &rendererInterface;
@@ -69,11 +72,13 @@ int main()
   while(!glfwWindowShouldClose(rendererInterface.window)) 
   {
     glfwPollEvents();
-    for(int i = 0; i < GameObject::gameObjects.size(); ++i)
+    for(GameObject* go : GameObject::gameObjects)
     {
-      GameObject::gameObjects[i]->OnUpdate(gameState);
-      rendererInterface.ubo.model[GameObject::gameObjects[i]->id] = GameObject::gameObjects[i]->GetModelMatrix();
+      go->OnUpdate(gameState);
+      
+      rendererInterface.ubo.model[go->id] = go->GetModelMatrix();
     }
+    inputInterface.LateUpdate();
     renderer.render(); 
   }
   vkDeviceWaitIdle(renderer.getLogicalDevice());
