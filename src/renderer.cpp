@@ -1150,6 +1150,9 @@ bool Renderer::hasStencilComponent(VkFormat format) {
 
 void Renderer::cleanupSwapChain()
 {
+  vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
+  vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
+
   for (size_t i = 0; i < swapChainFramebuffers.size(); i++)
     vkDestroyFramebuffer(logicalDevice, swapChainFramebuffers[i], nullptr);
 
@@ -1164,7 +1167,8 @@ void Renderer::recreateSwapChain()
   vkDeviceWaitIdle(logicalDevice);
 
   cleanupSwapChain();
-
+  
   createSwapChain();
   createFramebuffers();   
+  createGraphicsPipeline();
 }

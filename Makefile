@@ -9,7 +9,7 @@ VulkanEngine: $(FILES)
 .PHONY: test clean
 
 test: VulkanEngine
-	./VulkanEngine
+	prime-run ./VulkanEngine
 
 clean:
 	rm -f VulkanEngine
